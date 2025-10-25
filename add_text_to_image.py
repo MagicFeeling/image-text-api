@@ -188,6 +188,29 @@ def main():
 
     print("\n✓ All images processed successfully!")
 
+    # Update telegram-api config.json with output file paths
+    try:
+        telegram_config_path = "/home/pocahontas/git/apis/telegram-api/config.json"
+        with open(telegram_config_path, "r", encoding="utf-8") as f:
+            telegram_config = json.load(f)
+
+        # Build full output paths
+        sfw_output = str(Path(project_folder) / config["sfw"]["output_image"]) if "sfw" in config else None
+        nsfw_output = str(Path(project_folder) / config["nsfw"]["output_image"]) if "nsfw" in config else None
+
+        # Update the media section
+        if sfw_output:
+            telegram_config["media"]["sfw_file"] = sfw_output
+        if nsfw_output:
+            telegram_config["media"]["nsfw_file"] = nsfw_output
+
+        with open(telegram_config_path, "w", encoding="utf-8") as f:
+            json.dump(telegram_config, f, ensure_ascii=False, indent=2)
+
+        print(f"\n[INFO] Updated telegram-api config with output file paths")
+    except Exception as e:
+        print(f"[WARNING] Failed to update telegram-api config: {e}")
+
 
 if __name__ == "__main__":
     main()
