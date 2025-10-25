@@ -1,0 +1,22 @@
+{
+  "project_folder": "~/Documents/Fanvue/ProjectName_20251025_160101",
+  "font_path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+  "sfw": {
+    "input_image": "SFW/1.png",
+    "output_image": "SFW/patreon.png",
+    "text": "Find me on\nPatreon!",
+    "font_size": 100,
+    "color": "#8058da",
+    "position": "bottom"
+  },
+  "nsfw": {
+    "input_image": "NSFW/10.png",
+    "output_image": "NSFW/fanvue.png",
+    "text": "See more on\nFanvue!",
+    "font_size": 100,
+    "color": "#e848a3",
+    "position": "bottom",
+    "blur": true,
+    "blur_radius": 15
+  }
+}
