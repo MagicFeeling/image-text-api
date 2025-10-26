@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  image-text-api:
+    build: .
+    container_name: image-text-api
+    volumes:
+      # Mount the Documents/Fanvue folder containing the images
+      - /home/pocahontas/Documents/Fanvue:/home/pocahontas/Documents/Fanvue
+
+      # Mount config files for telegram-api, x-api, and fanvue-api so they can be updated
+      - /home/pocahontas/git/apis/telegram-api/config.json:/home/pocahontas/git/apis/telegram-api/config.json
+      - /home/pocahontas/git/apis/x-api/config.json:/home/pocahontas/git/apis/x-api/config.json
+      - /home/pocahontas/git/apis/fanvue-api/config.json:/home/pocahontas/git/apis/fanvue-api/config.json
+
+      # Mount the local config file
+      - ./config.json:/app/config.json

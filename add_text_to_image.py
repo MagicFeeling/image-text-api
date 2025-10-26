@@ -188,15 +188,18 @@ def main():
 
     print("\n✓ All images processed successfully!")
 
+    # Build full output paths
+    sfw_output = str(Path(project_folder) / config["sfw"]["output_image"]) if "sfw" in config else None
+    nsfw_output = str(Path(project_folder) / config["nsfw"]["output_image"]) if "nsfw" in config else None
+
+    # Get SFW input image for fanvue-api preview
+    sfw_input = config["sfw"]["input_image"] if "sfw" in config else None
+
     # Update telegram-api config.json with output file paths
     try:
         telegram_config_path = "/home/pocahontas/git/apis/telegram-api/config.json"
         with open(telegram_config_path, "r", encoding="utf-8") as f:
             telegram_config = json.load(f)
-
-        # Build full output paths
-        sfw_output = str(Path(project_folder) / config["sfw"]["output_image"]) if "sfw" in config else None
-        nsfw_output = str(Path(project_folder) / config["nsfw"]["output_image"]) if "nsfw" in config else None
 
         # Update the media section
         if sfw_output:
@@ -210,6 +213,42 @@ def main():
         print(f"\n[INFO] Updated telegram-api config with output file paths")
     except Exception as e:
         print(f"[WARNING] Failed to update telegram-api config: {e}")
+
+    # Update x-api config.json with output file paths
+    try:
+        x_config_path = "/home/pocahontas/git/apis/x-api/config.json"
+        with open(x_config_path, "r", encoding="utf-8") as f:
+            x_config = json.load(f)
+
+        # Update the media section
+        if sfw_output:
+            x_config["media"]["sfw_file"] = sfw_output
+        if nsfw_output:
+            x_config["media"]["nsfw_file"] = nsfw_output
+
+        with open(x_config_path, "w", encoding="utf-8") as f:
+            json.dump(x_config, f, ensure_ascii=False, indent=2)
+
+        print(f"\n[INFO] Updated x-api config with output file paths")
+    except Exception as e:
+        print(f"[WARNING] Failed to update x-api config: {e}")
+
+    # Update fanvue-api config.json with SFW input image for preview
+    try:
+        fanvue_config_path = "/home/pocahontas/git/apis/fanvue-api/config.json"
+        with open(fanvue_config_path, "r", encoding="utf-8") as f:
+            fanvue_config = json.load(f)
+
+        # Update the post_preview section with SFW input image
+        if sfw_input and "post_preview" in fanvue_config:
+            fanvue_config["post_preview"]["preview_image"] = sfw_input
+
+        with open(fanvue_config_path, "w", encoding="utf-8") as f:
+            json.dump(fanvue_config, f, ensure_ascii=False, indent=2)
+
+        print(f"\n[INFO] Updated fanvue-api config with preview image: {sfw_input}")
+    except Exception as e:
+        print(f"[WARNING] Failed to update fanvue-api config: {e}")
 
 
 if __name__ == "__main__":
