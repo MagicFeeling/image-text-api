@@ -2,7 +2,11 @@ version: '3.8'
 
 services:
   image-text-api:
-    build: .
+    build:
+      context: .
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
     container_name: image-text-api
     volumes:
       # Mount the Documents/Fanvue folder containing the images

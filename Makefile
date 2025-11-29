@@ -18,21 +18,21 @@ help:
 
 text:
 	@echo "Running image-text-api in Docker..."
-	docker-compose up --build
+	docker compose up --build
 
 build:
 	@echo "Building Docker image..."
-	docker-compose build
+	docker compose build
 
 down:
 	@echo "Stopping containers..."
-	docker-compose down
+	docker compose down
 
 clean:
 	@echo "Cleaning up Docker resources..."
-	docker-compose down --rmi all --volumes
+	docker compose down --rmi all --volumes
 	@echo "Clean complete!"
 
 logs:
 	@echo "Showing logs..."
-	docker-compose logs -f
+	docker compose logs -f

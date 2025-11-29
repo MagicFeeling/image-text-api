@@ -47,7 +47,8 @@ def add_text_to_image(
     color: str,
     position: str = "bottom",
     blur: bool = False,
-    blur_radius: int = 15
+    blur_radius: int = 15,
+    num_images: int = None
 ) -> None:
     """
     Add text to an image and save to a new file.
@@ -62,7 +63,12 @@ def add_text_to_image(
         position: Text position ("bottom", "top", or "center")
         blur: Whether to blur the image before adding text
         blur_radius: Blur radius (higher = more blur)
+        num_images: Optional number of images to append to text (e.g., " (3 images)")
     """
+    # Add image count to text if provided
+    if num_images is not None:
+        image_word = "images" if num_images > 1 else "image"
+        text = f"{text}\n({num_images} {image_word})"
     try:
         # Open the image
         img = Image.open(input_path)
@@ -131,6 +137,137 @@ def add_text_to_image(
         sys.exit(1)
 
 
+def get_number_of_images(project_folder: str, subfolder: str) -> int:
+    """
+    Count the number of .png images in a project subfolder.
+
+    Args:
+        project_folder: Base project folder path
+        subfolder: Subfolder name (e.g., "SFW" or "NSFW")
+
+    Returns:
+        Number of .png files in the specified folder
+    """
+    folder_path = Path(project_folder) / subfolder
+
+    if not folder_path.exists():
+        print(f"Warning: Folder not found: {folder_path}")
+        return 0
+
+    # Count .png files in the folder
+    png_files = list(folder_path.glob("*.png"))
+    return len(png_files)
+
+
+def _update_prompt_file(file_path: Path, num_images: int) -> None:
+    """
+    Helper function to update a prompt file with image count.
+
+    Args:
+        file_path: Path to the prompt file
+        num_images: Number of images to insert
+    """
+    import re
+
+    if not file_path.exists():
+        return
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # Replace the number and make "image" plural if num_images > 1
+        image_word = "images" if num_images > 1 else "image"
+        # Pattern to match: (any number image/images)
+        content = re.sub(r'\(\d+\s+images?\)', f'({num_images} {image_word})', content)
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+        print(f"✓ Updated {file_path} with {num_images} {image_word}")
+    except Exception as e:
+        print(f"Warning: Failed to update {file_path.name}: {e}")
+
+
+def _update_socialmedia_file(file_path: Path, num_images: int, platform: str) -> None:
+    """
+    Helper function to update socialmedia.txt with image count after a platform name.
+
+    Args:
+        file_path: Path to the socialmedia.txt file
+        num_images: Number of images to insert
+        platform: Platform name to insert count after (e.g., "Patreon" or "Fanvue")
+    """
+    import re
+
+    if not file_path.exists():
+        return
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # Determine singular/plural
+        image_word = "images" if num_images > 1 else "image"
+        new_text = f" ({num_images} {image_word})"
+
+        # Remove any existing image count after the platform name
+        content = re.sub(rf'{platform}\s*\([^)]+\)', platform, content)
+
+        # Insert the new image count after the platform name
+        # Handle both cases: "Platform!" and "Platform &"
+        content = re.sub(rf'{platform}(?=\s*[&!])', f'{platform}{new_text}', content)
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+        print(f"✓ Updated {file_path} with {num_images} {image_word} for {platform}")
+    except Exception as e:
+        print(f"Warning: Failed to update {file_path.name} for {platform}: {e}")
+
+
+def add_number_to_prompts_sfw(project_folder: str, num_images: int) -> None:
+    """
+    Update SFW prompt files with the number of images.
+
+    Args:
+        project_folder: Base project folder path
+        num_images: Number of images to insert into prompts
+    """
+    prompts_folder = Path(project_folder) / "Prompts"
+
+    if not prompts_folder.exists():
+        print(f"Warning: Prompts folder not found: {prompts_folder}")
+        return
+
+    # Update patreon.txt
+    _update_prompt_file(prompts_folder / "patreon.txt", num_images)
+
+    # Update socialmedia.txt with Patreon count
+    _update_socialmedia_file(prompts_folder / "socialmedia.txt", num_images, "Patreon")
+
+
+def add_number_to_prompts_nsfw(project_folder: str, num_images: int) -> None:
+    """
+    Update NSFW prompt files with the number of images.
+
+    Args:
+        project_folder: Base project folder path
+        num_images: Number of images to insert into prompts
+    """
+    prompts_folder = Path(project_folder) / "Prompts"
+
+    if not prompts_folder.exists():
+        print(f"Warning: Prompts folder not found: {prompts_folder}")
+        return
+
+    # Update fanvue.txt
+    _update_prompt_file(prompts_folder / "fanvue.txt", num_images)
+
+    # Update socialmedia.txt with Fanvue count
+    _update_socialmedia_file(prompts_folder / "socialmedia.txt", num_images, "Fanvue")
+
+
 def main():
     """Main function to process images based on config file."""
     if len(sys.argv) != 2:
@@ -155,6 +292,9 @@ def main():
         input_path = str(Path(project_folder) / sfw["input_image"])
         output_path = str(Path(project_folder) / sfw["output_image"])
 
+        num_images = get_number_of_images(project_folder, "SFW")
+        add_number_to_prompts_sfw(project_folder, num_images)
+
         add_text_to_image(
             input_path=input_path,
             output_path=output_path,
@@ -162,7 +302,8 @@ def main():
             font_path=config.get("font_path", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
             font_size=sfw.get("font_size", 48),
             color=sfw.get("color", "#FFFFFF"),
-            position=sfw.get("position", "bottom")
+            position=sfw.get("position", "bottom"),
+            num_images=num_images
         )
 
     # Process NSFW image
@@ -174,6 +315,9 @@ def main():
         input_path = str(Path(project_folder) / nsfw["input_image"])
         output_path = str(Path(project_folder) / nsfw["output_image"])
 
+        num_images = get_number_of_images(project_folder, "NSFW")
+        add_number_to_prompts_nsfw(project_folder, num_images)
+
         add_text_to_image(
             input_path=input_path,
             output_path=output_path,
@@ -183,7 +327,8 @@ def main():
             color=nsfw.get("color", "#FFFFFF"),
             position=nsfw.get("position", "bottom"),
             blur=nsfw.get("blur", True),
-            blur_radius=nsfw.get("blur_radius", 15)
+            blur_radius=nsfw.get("blur_radius", 15),
+            num_images=num_images
         )
 
     print("\n✓ All images processed successfully!")
