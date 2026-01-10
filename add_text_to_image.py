@@ -416,6 +416,25 @@ def main():
     except Exception as e:
         print(f"[WARNING] Failed to update x-api config: {e}")
 
+    # Update bluesky-api config.json with output file paths
+    try:
+        bluesky_config_path = "/home/pocahontas/git/apis/bluesky-api/config.json"
+        with open(bluesky_config_path, "r", encoding="utf-8") as f:
+            bluesky_config = json.load(f)
+
+        # Update the media section
+        if sfw_output:
+            bluesky_config["media"]["sfw_file"] = sfw_output
+        if nsfw_output:
+            bluesky_config["media"]["nsfw_file"] = nsfw_output
+
+        with open(bluesky_config_path, "w", encoding="utf-8") as f:
+            json.dump(bluesky_config, f, ensure_ascii=False, indent=2)
+
+        print(f"\n[INFO] Updated bluesky-api config with output file paths")
+    except Exception as e:
+        print(f"[WARNING] Failed to update bluesky-api config: {e}")
+
     # Update fanvue-api config.json with SFW input image for preview
     try:
         fanvue_config_path = "/home/pocahontas/git/apis/fanvue-api/config.json"

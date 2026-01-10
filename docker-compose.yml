@@ -12,9 +12,10 @@ services:
       # Mount the Documents/Fanvue folder containing the images
       - /home/pocahontas/Documents/Fanvue:/home/pocahontas/Documents/Fanvue
 
-      # Mount config files for telegram-api, x-api, and fanvue-api so they can be updated
+      # Mount config files for telegram-api, x-api, bluesky-api, and fanvue-api so they can be updated
       - /home/pocahontas/git/apis/telegram-api/config.json:/home/pocahontas/git/apis/telegram-api/config.json
       - /home/pocahontas/git/apis/x-api/config.json:/home/pocahontas/git/apis/x-api/config.json
+      - /home/pocahontas/git/apis/bluesky-api/config.json:/home/pocahontas/git/apis/bluesky-api/config.json
       - /home/pocahontas/git/apis/fanvue-api/config.json:/home/pocahontas/git/apis/fanvue-api/config.json
 
       # Mount the local config file
